@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Create listing | Evergreen Auction House</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              evergreenBg: "#E3CDA5",
+              evergreenDark: "#0F3B2E",
+              evergreenCard: "#C9A86A",
+              evergreenTextLight: "#EAD9CE",
+            },
+          },
+        },
+      };
+    </script>
+
+    <style>
+      .font-heading {
+        font-family: "Playfair Display", serif;
+      }
+      .font-body {
+        font-family: Georgia, serif;
+      }
+    </style>
+  </head>
+
+  <body
+    class="bg-evergreenBg text-evergreenDark font-body min-h-screen flex flex-col"
+  >
+    <header class="bg-[#0F3B2E] text-[#E3CDA5]">
+      <div
+        class="max-w-6xl mx-auto flex items-center justify-between px-4 sm:px-6 py-3"
+      >
+        <div class="flex items-center gap-4">
+          <img
+            src="/media/evergreenlogobeige.png"
+            alt="Evergreen Auction House logo"
+            class="h-20 sm:h-24 w-auto"
+          />
+          <span
+            class="hidden md:inline font-serif text-lg lg:text-xl tracking-[0.18em] uppercase"
+          >
+            Evergreen Auction House
+          </span>
+        </div>
+
+        <div class="hidden md:flex items-center gap-4 text-xs sm:text-sm">
+          <span
+            id="headerCreditWrapper"
+            class="hidden px-3 py-1 rounded-full border border-[#E3CDA5]/60 bg-[#0F3B2E]"
+          >
+            Credit:
+            <span id="headerCreditValue" class="font-semibold">0</span>
+          </span>
+
+          <a
+            id="headerRegisterBtn"
+            href="register.html"
+            class="px-4 py-1.5 rounded-full bg-[#E3CDA5] text-[#0F3B2E] text-xs font-semibold tracking-wide hover:bg-white transition"
+          >
+            Register
+          </a>
+
+          <button
+            id="headerLogoutBtn"
+            class="hidden px-4 py-1.5 rounded-full bg-[#E3CDA5] text-[#0F3B2E] text-xs font-semibold tracking-wide hover:bg-white transition"
+          >
+            Log out
+          </button>
+        </div>
+
+        <div class="relative flex items-center gap-5">
+          <a href="index.html" class="hover:opacity-80">
+            <img src="/media/Home-icon.png" alt="Home" class="h-6 w-6" />
+          </a>
+
+          <button
+            id="navSearchBtn"
+            type="button"
+            class="hover:opacity-80"
+            aria-label="Open search"
+          >
+            <img src="/media/Search-icon.png" alt="Search" class="h-6 w-6" />
+          </button>
+
+          <a class="nav-profile-link hover:opacity-80">
+            <img src="/media/User-icon.png" alt="Profile" class="h-7 w-7" />
+          </a>
+
+          <div
+            id="searchDropdown"
+            class="hidden absolute right-0 top-full mt-2 w-72 sm:w-80 bg-[#C9A86A] text-[#0F3B2E] rounded-lg shadow-lg border border-[#E3CDA5]/60 z-50"
+          >
+            <div class="p-3 space-y-2">
+              <div class="flex items-center gap-2">
+                <input
+                  id="navSearchInput"
+                  type="text"
+                  placeholder="Search listings or users..."
+                  class="flex-1 px-2 py-1 rounded-md text-sm border border-[#0F3B2E]/30 bg-[#E3CDA5] focus:outline-none focus:ring-2 focus:ring-[#0F3B2E]"
+                />
+                <button
+                  id="closeSearchBtn"
+                  type="button"
+                  class="text-xs px-2 py-1 rounded-md hover:bg-[#0F3B2E] hover:text-[#E3CDA5] transition"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <div
+                id="navSearchResults"
+                class="max-h-64 overflow-y-auto text-sm"
+              ></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="flex-1">
+      <div class="max-w-4xl mx-auto px-4 sm:px-6 py-8">
+        <h1
+          class="font-heading text-2xl sm:text-3xl text-center mb-6 tracking-[0.18em] uppercase"
+        >
+          Create listing
+        </h1>
+
+        <p
+          id="createListingStatus"
+          class="min-h-[1.25rem] text-xs text-center mb-4"
+        ></p>
+
+        <section
+          class="bg-evergreenCard rounded-lg shadow-md px-4 sm:px-6 py-5 space-y-4"
+        >
+          <form id="createListingForm" class="space-y-4">
+            <div>
+              <label for="listingTitle" class="block text-sm font-semibold mb-1"
+                >Title</label
+              >
+              <input
+                id="listingTitle"
+                type="text"
+                required
+                class="w-full px-3 py-2 rounded-md border border-evergreenDark/40 bg-evergreenBg text-sm focus:outline-none focus:ring-2 focus:ring-evergreenDark"
+              />
+            </div>
+
+            <div>
+              <label
+                for="listingDescription"
+                class="block text-sm font-semibold mb-1"
+                >Description</label
+              >
+              <textarea
+                id="listingDescription"
+                rows="4"
+                class="w-full px-3 py-2 rounded-md border border-evergreenDark/40 bg-evergreenBg text-sm resize-y focus:outline-none focus:ring-2 focus:ring-evergreenDark"
+              ></textarea>
+            </div>
+
+            <div>
+              <label for="listingTags" class="block text-sm font-semibold mb-1"
+                >Tags</label
+              >
+              <input
+                id="listingTags"
+                type="text"
+                placeholder="Separated with comma"
+                class="w-full px-3 py-2 rounded-md border border-evergreenDark/40 bg-evergreenBg text-sm focus:outline-none focus:ring-2 focus:ring-evergreenDark"
+              />
+              <p class="text-[11px] mt-1 text-evergreenDark/80">
+                Example: <span class="italic">guitar, music, instrument</span>
+              </p>
+            </div>
+
+            <div>
+              <h2 class="font-heading text-base mb-2">Media</h2>
+              <p class="text-[11px] mb-2 text-evergreenDark/80">
+                Each image URL must be a publicly accessible link.
+              </p>
+
+              <div class="grid gap-3 sm:grid-cols-3">
+                <div
+                  class="bg-evergreenBg/80 rounded-md border border-evergreenDark/30 p-2 flex flex-col gap-2"
+                >
+                  <p class="text-xs font-semibold text-center mb-1">Image 1</p>
+                  <label class="text-[11px]">Image URL:</label>
+                  <input
+                    type="url"
+                    class="media-url-input w-full px-2 py-1 rounded-md border border-evergreenDark/30 bg-white text-xs focus:outline-none focus:ring-1 focus:ring-evergreenDark"
+                    placeholder="https://..."
+                  />
+                  <label class="text-[11px] mt-1">Alt text:</label>
+                  <input
+                    type="text"
+                    class="media-alt-input w-full px-2 py-1 rounded-md border border-evergreenDark/30 bg-white text-xs focus:outline-none focus:ring-1 focus:ring-evergreenDark"
+                    placeholder="Image description"
+                  />
+                </div>
+
+                <div
+                  class="bg-evergreenBg/80 rounded-md border border-evergreenDark/30 p-2 flex flex-col gap-2"
+                >
+                  <p class="text-xs font-semibold text-center mb-1">Image 2</p>
+                  <label class="text-[11px]">Image URL:</label>
+                  <input
+                    type="url"
+                    class="media-url-input w-full px-2 py-1 rounded-md border border-evergreenDark/30 bg-white text-xs focus:outline-none focus:ring-1 focus:ring-evergreenDark"
+                    placeholder="https://..."
+                  />
+                  <label class="text-[11px] mt-1">Alt text:</label>
+                  <input
+                    type="text"
+                    class="media-alt-input w-full px-2 py-1 rounded-md border border-evergreenDark/30 bg-white text-xs focus:outline-none focus:ring-1 focus:ring-evergreenDark"
+                    placeholder="Image description"
+                  />
+                </div>
+
+                <div
+                  class="bg-evergreenBg/80 rounded-md border border-evergreenDark/30 p-2 flex flex-col gap-2"
+                >
+                  <p class="text-xs font-semibold text-center mb-1">Image 3</p>
+                  <label class="text-[11px]">Image URL:</label>
+                  <input
+                    type="url"
+                    class="media-url-input w-full px-2 py-1 rounded-md border border-evergreenDark/30 bg-white text-xs focus:outline-none focus:ring-1 focus:ring-evergreenDark"
+                    placeholder="https://..."
+                  />
+                  <label class="text-[11px] mt-1">Alt text:</label>
+                  <input
+                    type="text"
+                    class="media-alt-input w-full px-2 py-1 rounded-md border border-evergreenDark/30 bg-white text-xs focus:outline-none focus:ring-1 focus:ring-evergreenDark"
+                    placeholder="Image description"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label
+                for="listingEndsAt"
+                class="block text-sm font-semibold mb-1"
+                >Ends at</label
+              >
+              <input
+                id="listingEndsAt"
+                type="date"
+                class="w-full max-w-xs px-3 py-2 rounded-md border border-evergreenDark/40 bg-evergreenBg text-sm focus:outline-none focus:ring-2 focus:ring-evergreenDark"
+                placeholder="YYYY-MM-DD"
+                required
+              />
+              <p class="text-[11px] mt-1 text-evergreenDark/80">
+                Must be a future date. The auction will end at midnight on this
+                date.
+              </p>
+            </div>
+
+            <div class="pt-2 flex justify-end">
+              <button
+                id="createListingSubmitBtn"
+                type="submit"
+                class="px-6 py-2 rounded-full bg-evergreenDark text-evergreenTextLight text-xs sm:text-sm font-semibold tracking-wide hover:bg-black/80 transition"
+              >
+                Create listing
+              </button>
+            </div>
+          </form>
+        </section>
+      </div>
+    </main>
+
+    <footer class="bg-evergreenDark text-evergreenTextLight mt-8">
+      <div
+        class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between"
+      >
+        <span class="text-xs sm:text-sm">
+          Unregistered users can browse listings. Create an account to bid.
+        </span>
+        <nav class="flex items-center gap-5">
+          <a href="index.html" class="hover:opacity-80">
+            <img src="/media/Home-icon.png" alt="Home" class="h-6 w-6" />
+          </a>
+          <button type="button" class="hover:opacity-80">
+            <img src="/media/Search-icon.png" alt="Search" class="h-6 w-6" />
+          </button>
+
+          <a class="nav-profile-link hover:opacity-80">
+            <img src="/media/User-icon.png" alt="Profile" class="h-7 w-7" />
+          </a>
+        </nav>
+      </div>
+    </footer>
+
+    <script type="module" src="js/create-listing.js"></script>
+    <script type="module" src="js/nav-auth.js"></script>
+    <script type="module" src="js/nav-search.js"></script>
+  </body>
+</html>
