@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Create account | Evergreen Auction House</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Georgia:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Tailwind CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              evergreenBg: "#E3CDA5",
+              evergreenDark: "#0F3B2E",
+              evergreenCard: "#C9A86A",
+              evergreenTextLight: "#EAD9CE",
+            },
+          },
+        },
+      };
+    </script>
+
+    <style>
+      .font-heading {
+        font-family: "Playfair Display", serif;
+      }
+      .font-body {
+        font-family: "Georgia", serif;
+      }
+    </style>
+  </head>
+
+  <body
+    class="bg-evergreenBg text-evergreenDark font-body min-h-screen flex flex-col"
+  >
+    <header class="bg-[#0F3B2E] text-[#E3CDA5]">
+      <div
+        class="max-w-6xl mx-auto flex items-center justify-between px-4 sm:px-6 py-3"
+      >
+        <!-- Logo + navn -->
+        <div class="flex items-center gap-4">
+          <img
+            src="/media/evergreenlogobeige.png"
+            alt="Evergreen Auction House logo"
+            class="h-20 sm:h-24 w-auto"
+          />
+          <span
+            class="hidden md:inline font-serif text-lg lg:text-xl tracking-[0.18em] uppercase"
+          >
+            Evergreen Auction House
+          </span>
+        </div>
+
+        <!-- Credit + Register / Logout (styres av nav-auth.js) -->
+        <div class="hidden md:flex items-center gap-4 text-xs sm:text-sm">
+          <!-- Credits fylles av JS når bruker er logget inn -->
+          <span
+            id="headerCreditWrapper"
+            class="hidden px-3 py-1 rounded-full border border-[#E3CDA5]/60 bg-[#0F3B2E]"
+          >
+            Credit:
+            <span id="headerCreditValue" class="font-semibold">0</span>
+          </span>
+
+          <!-- Register-knapp skjules av JS når bruker er logget inn -->
+          <a
+            id="headerRegisterBtn"
+            href="register.html"
+            class="px-4 py-1.5 rounded-full bg-[#E3CDA5] text-[#0F3B2E] text-xs font-semibold tracking-wide hover:bg-white transition"
+          >
+            Register
+          </a>
+
+          <!-- Logout button (hidden by default, vist av JS når logget inn) -->
+          <button
+            id="headerLogoutBtn"
+            class="hidden px-4 py-1.5 rounded-full bg-[#E3CDA5] text-[#0F3B2E] text-xs font-semibold tracking-wide hover:bg-white transition"
+          >
+            Log out
+          </button>
+        </div>
+
+        <!-- Ikoner + SEARCH DROPDOWN WRAPPER -->
+        <div class="relative flex items-center gap-5">
+          <!-- Home -->
+          <a href="index.html" class="hover:opacity-80">
+            <img src="/media/Home-icon.png" alt="Home" class="h-6 w-6" />
+          </a>
+
+          <!-- Search-knapp (åpner dropdown) -->
+          <button
+            id="navSearchBtn"
+            type="button"
+            class="hover:opacity-80"
+            aria-label="Open search"
+          >
+            <img src="/media/Search-icon.png" alt="Search" class="h-6 w-6" />
+          </button>
+
+          <!-- Profil-ikon: href settes av nav-auth.js (login eller profile) -->
+          <a class="nav-profile-link hover:opacity-80">
+            <img src="/media/User-icon.png" alt="Profile" class="h-7 w-7" />
+          </a>
+
+          <!-- SEARCH DROPDOWN (styres av nav-search.js) -->
+          <div
+            id="searchDropdown"
+            class="hidden absolute right-0 top-full mt-2 w-72 sm:w-80 bg-[#C9A86A] text-[#0F3B2E] rounded-lg shadow-lg border border-[#E3CDA5]/60 z-50"
+          >
+            <div class="p-3 space-y-2">
+              <!-- Input + close -->
+              <div class="flex items-center gap-2">
+                <input
+                  id="navSearchInput"
+                  type="text"
+                  placeholder="Search listings or users..."
+                  class="flex-1 px-2 py-1 rounded-md text-sm border border-[#0F3B2E]/30 bg-[#E3CDA5] focus:outline-none focus:ring-2 focus:ring-[#0F3B2E]"
+                />
+                <button
+                  id="closeSearchBtn"
+                  type="button"
+                  class="text-xs px-2 py-1 rounded-md hover:bg-[#0F3B2E] hover:text-[#E3CDA5] transition"
+                >
+                  ✕
+                </button>
+              </div>
+              <div
+                id="navSearchResults"
+                class="max-h-64 overflow-y-auto text-sm"
+              ></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- MAIN -->
+    <main class="flex-1 flex items-center justify-center px-4 py-8">
+      <section
+        class="w-full max-w-md bg-evergreenCard rounded-lg shadow-md px-6 py-6 sm:px-8 sm:py-7"
+      >
+        <h1
+          class="font-heading text-xl sm:text-2xl tracking-[0.18em] text-center uppercase mb-5"
+        >
+          Create account
+        </h1>
+
+        <form id="registerForm" class="space-y-4 text-sm">
+          <!-- NAME -->
+          <div class="space-y-1">
+            <label for="name" class="block text-sm font-semibold">Name</label>
+            <input
+              type="text"
+              id="name"
+              name="name"
+              autocomplete="username"
+              required
+              class="w-full px-3 py-2 rounded-md bg-evergreenBg border border-evergreenDark/40 focus:outline-none focus:ring-2 focus:ring-evergreenDark/70"
+              placeholder="Your display name"
+            />
+            <p class="text-[11px] text-evergreenDark/80">
+              This name will be shown at your listings and bids.
+            </p>
+          </div>
+
+          <!-- EMAIL -->
+          <div class="space-y-1">
+            <label for="email" class="block text-sm font-semibold">Email</label>
+            <input
+              type="email"
+              id="email"
+              name="email"
+              autocomplete="email"
+              required
+              class="w-full px-3 py-2 rounded-md bg-evergreenBg border border-evergreenDark/40 focus:outline-none focus:ring-2 focus:ring-evergreenDark/70"
+              placeholder="name@stud.noroff.no"
+            />
+            <p class="text-[11px] text-evergreenDark/80">
+              Only emails ending in
+              <span class="font-semibold">@stud.noroff.no</span>.
+            </p>
+          </div>
+
+          <!-- PASSWORD -->
+          <div class="space-y-1">
+            <label for="password" class="block text-sm font-semibold"
+              >Password</label
+            >
+            <input
+              type="password"
+              id="password"
+              name="password"
+              autocomplete="new-password"
+              required
+              minlength="8"
+              class="w-full px-3 py-2 rounded-md bg-evergreenBg border border-evergreenDark/40 focus:outline-none focus:ring-2 focus:ring-evergreenDark/70"
+              placeholder="********"
+            />
+            <p class="text-[11px] text-evergreenDark/80">
+              Minimum 8 characters.
+            </p>
+          </div>
+
+          <!-- CONFIRM PASSWORD -->
+          <div class="space-y-1">
+            <label for="confirmPassword" class="block text-sm font-semibold"
+              >Confirm password</label
+            >
+            <input
+              type="password"
+              id="confirmPassword"
+              name="confirmPassword"
+              autocomplete="new-password"
+              required
+              class="w-full px-3 py-2 rounded-md bg-evergreenBg border border-evergreenDark/40 focus:outline-none focus:ring-2 focus:ring-evergreenDark/70"
+              placeholder="Repeat password"
+            />
+          </div>
+
+          <!-- STATUS / ERROR -->
+          <p
+            id="registerMessage"
+            class="min-h-[1.25rem] text-xs text-center mt-1"
+          ></p>
+
+          <!-- BUTTONS -->
+          <button
+            type="submit"
+            class="w-full mt-2 bg-evergreenDark text-evergreenTextLight text-sm py-2.5 rounded-full hover:bg-black/80 transition font-semibold tracking-wide"
+          >
+            Create account
+          </button>
+
+          <div class="mt-3 text-center text-xs">
+            <p class="text-evergreenDark/90">Already have an account?</p>
+            <a
+              href="login.html"
+              class="inline-block mt-1 px-4 py-1.5 rounded-full bg-[#0F3B2E] text-evergreenTextLight hover:bg-black/80 transition font-medium"
+            >
+              Log in
+            </a>
+          </div>
+        </form>
+      </section>
+    </main>
+
+    <footer class="bg-evergreenDark text-evergreenTextLight mt-8">
+      <div
+        class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between"
+      >
+        <span class="text-xs sm:text-sm">
+          Unregistered users can browse listings. Create an account to bid.
+        </span>
+        <nav class="flex items-center gap-5">
+          <a href="index.html" class="hover:opacity-80">
+            <img src="/media/Home-icon.png" alt="Home" class="h-6 w-6" />
+          </a>
+          <button type="button" class="hover:opacity-80">
+            <img src="/media/Search-icon.png" alt="Search" class="h-6 w-6" />
+          </button>
+
+          <!-- PROFIL-IKON: styres globalt -->
+          <a class="nav-profile-link hover:opacity-80">
+            <img src="/media/User-icon.png" alt="Profile" class="h-7 w-7" />
+          </a>
+        </nav>
+      </div>
+    </footer>
+
+    <!-- JS -->
+    <script type="module" src="js/register.js"></script>
+    <script type="module" src="js/nav-auth.js"></script>
+    <script type="module" src="js/nav-search.js"></script>
+  </body>
+</html>

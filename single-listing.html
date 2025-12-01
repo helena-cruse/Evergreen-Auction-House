@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Evergreen Auction House Listing</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600;700&family=Georgia:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Tailwind CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            colors: {
+              evergreenBg: "#E3CDA5",
+              evergreenDark: "#0F3B2E",
+              evergreenCard: "#C9A86A",
+              evergreenTextLight: "#EAD9CE",
+            },
+          },
+        },
+      };
+    </script>
+
+    <style>
+      .font-heading {
+        font-family: "Playfair Display", serif;
+      }
+      .font-body {
+        font-family: "Georgia", serif;
+      }
+      /* enkel line-clamp til description */
+      .line-clamp-3 {
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      /* KARUSELL-BILDER: kun ett synlig om gangen */
+      .carousel-image {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        opacity: 0;
+        transition: opacity 200ms ease-in-out;
+      }
+      .carousel-image--active {
+        opacity: 1;
+      }
+    </style>
+  </head>
+
+  <body
+    class="bg-evergreenBg text-evergreenDark font-body min-h-screen flex flex-col"
+  >
+    <header class="bg-[#0F3B2E] text-[#E3CDA5]">
+      <div
+        class="max-w-6xl mx-auto flex items-center justify-between px-4 sm:px-6 py-3"
+      >
+        <!-- Logo + navn -->
+        <div class="flex items-center gap-4">
+          <img
+            src="/media/evergreenlogobeige.png"
+            alt="Evergreen Auction House logo"
+            class="h-20 sm:h-24 w-auto"
+          />
+          <span
+            class="hidden md:inline font-serif text-lg lg:text-xl tracking-[0.18em] uppercase"
+          >
+            Evergreen Auction House
+          </span>
+        </div>
+
+        <!-- Credit + Register / Logout (styres av nav-auth.js) -->
+        <div class="hidden md:flex items-center gap-4 text-xs sm:text-sm">
+          <!-- Credits fylles av JS når bruker er logget inn -->
+          <span
+            id="headerCreditWrapper"
+            class="hidden px-3 py-1 rounded-full border border-[#E3CDA5]/60 bg-[#0F3B2E]"
+          >
+            Credit:
+            <span id="headerCreditValue" class="font-semibold">0</span>
+          </span>
+
+          <!-- Register-knapp skjules av JS når bruker er logget inn -->
+          <a
+            id="headerRegisterBtn"
+            href="register.html"
+            class="px-4 py-1.5 rounded-full bg-[#E3CDA5] text-[#0F3B2E] text-xs font-semibold tracking-wide hover:bg-white transition"
+          >
+            Register
+          </a>
+
+          <!-- Logout button (hidden by default, vist av JS når logget inn) -->
+          <button
+            id="headerLogoutBtn"
+            class="hidden px-4 py-1.5 rounded-full bg-[#E3CDA5] text-[#0F3B2E] text-xs font-semibold tracking-wide hover:bg-white transition"
+          >
+            Log out
+          </button>
+        </div>
+
+        <!-- Ikoner + SEARCH DROPDOWN WRAPPER -->
+        <div class="relative flex items-center gap-5">
+          <!-- Home -->
+          <a href="index.html" class="hover:opacity-80">
+            <img src="/media/Home-icon.png" alt="Home" class="h-6 w-6" />
+          </a>
+
+          <!-- Search-knapp (åpner dropdown) -->
+          <button
+            id="navSearchBtn"
+            type="button"
+            class="hover:opacity-80"
+            aria-label="Open search"
+          >
+            <img src="/media/Search-icon.png" alt="Search" class="h-6 w-6" />
+          </button>
+
+          <!-- Profil-ikon: href settes av nav-auth.js (login eller profile) -->
+          <a class="nav-profile-link hover:opacity-80">
+            <img src="/media/User-icon.png" alt="Profile" class="h-7 w-7" />
+          </a>
+
+          <!-- SEARCH DROPDOWN (styres av nav-search.js) -->
+          <div
+            id="searchDropdown"
+            class="hidden absolute right-0 top-full mt-2 w-72 sm:w-80 bg-[#C9A86A] text-[#0F3B2E] rounded-lg shadow-lg border border-[#E3CDA5]/60 z-50"
+          >
+            <div class="p-3 space-y-2">
+              <!-- Input + close -->
+              <div class="flex items-center gap-2">
+                <input
+                  id="navSearchInput"
+                  type="text"
+                  placeholder="Search listings or users..."
+                  class="flex-1 px-2 py-1 rounded-md text-sm border border-[#0F3B2E]/30 bg-[#E3CDA5] focus:outline-none focus:ring-2 focus:ring-[#0F3B2E]"
+                />
+                <button
+                  id="closeSearchBtn"
+                  type="button"
+                  class="text-xs px-2 py-1 rounded-md hover:bg-[#0F3B2E] hover:text-[#E3CDA5] transition"
+                >
+                  ✕
+                </button>
+              </div>
+
+              <!-- Resultater -->
+              <div
+                id="navSearchResults"
+                class="max-h-64 overflow-y-auto text-sm"
+              ></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- MAIN -->
+    <main class="flex-1">
+      <div class="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+        <!-- Back link -->
+        <a
+          href="index.html"
+          class="inline-flex items-center text-xs sm:text-sm text-evergreenDark/80 hover:text-evergreenDark mb-2"
+        >
+          ← Back to listings
+        </a>
+
+        <!-- TOP: Gallery + info -->
+        <section
+          class="grid grid-cols-1 lg:grid-cols-[minmax(0,1.4fr),minmax(0,1fr)] gap-6"
+        >
+          <!-- GALLERY – KARUSELL MED PILER -->
+          <div class="bg-evergreenCard rounded-lg p-4 shadow-md">
+            <div
+              class="relative aspect-[4/3] bg-evergreenBg/60 rounded-md overflow-hidden"
+            >
+              <!-- Venstre pil -->
+              <button
+                type="button"
+                id="prevImageBtn"
+                class="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-[#0F3B2E]/70 text-[#E3CDA5] rounded-full w-8 h-8 flex items-center justify-center text-lg hover:bg-black/80 transition"
+                aria-label="Previous image"
+              >
+                &#10094;
+              </button>
+
+              <!-- Selve karusell-området -->
+              <div id="listingCarousel" class="w-full h-full relative">
+                <!-- Bilder legges inn med JS -->
+              </div>
+
+              <!-- Høyre pil -->
+              <button
+                type="button"
+                id="nextImageBtn"
+                class="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-[#0F3B2E]/70 text-[#E3CDA5] rounded-full w-8 h-8 flex items-center justify-center text-lg hover:bg-black/80 transition"
+                aria-label="Next image"
+              >
+                &#10095;
+              </button>
+            </div>
+
+            <!-- Teller under karusellen -->
+            <p
+              id="carouselCounter"
+              class="mt-2 text-xs text-center text-evergreenDark/80"
+            ></p>
+          </div>
+
+          <!-- INFO + BID -->
+          <aside class="space-y-4">
+            <!-- Listing info -->
+            <div class="bg-evergreenCard rounded-lg p-4 shadow-md space-y-2">
+              <h1
+                id="listingTitle"
+                class="font-heading text-2xl leading-snug mb-1"
+              >
+                <!-- Title -->
+              </h1>
+
+              <p class="text-xs uppercase tracking-wide text-evergreenDark/80">
+                Listing ID:
+                <span id="listingId" class="font-mono text-[11px]"></span>
+              </p>
+
+              <p class="text-sm text-evergreenDark/90">
+                Seller:
+                <span id="listingSeller" class="font-semibold"></span>
+              </p>
+
+              <p
+                id="listingTime"
+                class="text-xs text-evergreenDark/80 uppercase tracking-wide"
+              >
+                <!-- Ends in ... -->
+              </p>
+
+              <div class="flex flex-wrap gap-2 mt-2 text-xs">
+                <span
+                  id="listingPrice"
+                  class="px-3 py-1 rounded-full bg-[#0F3B2E] text-[#EAD9CE]"
+                ></span>
+                <span
+                  id="listingBidsCount"
+                  class="px-3 py-1 rounded-full border border-evergreenDark/40"
+                ></span>
+              </div>
+
+              <div
+                id="listingTags"
+                class="flex flex-wrap gap-1.5 mt-2 text-[11px]"
+              >
+                <!-- tags -->
+              </div>
+            </div>
+
+            <!-- MESSAGES -->
+            <div id="endedMessage" class="hidden">
+              <div
+                class="bg-red-900/80 text-[#FCE7E7] text-xs rounded-md px-3 py-2"
+              >
+                This auction has ended. Bidding is closed.
+              </div>
+            </div>
+
+            <div id="ownerMessage" class="hidden">
+              <div
+                class="bg-evergreenDark text-evergreenTextLight text-xs rounded-md px-3 py-2"
+              >
+                You are the seller of this listing. You cannot place bids on
+                your own auction.
+              </div>
+            </div>
+
+            <div id="notLoggedInMessage" class="hidden">
+              <div
+                class="bg-evergreenDark text-evergreenTextLight text-xs rounded-md px-3 py-2 space-y-1"
+              >
+                <p>You must be logged in to place a bid.</p>
+                <div class="flex gap-2 text-xs">
+                  <a
+                    href="login.html"
+                    class="px-3 py-1 rounded-full bg-[#E3CDA5] text-[#0F3B2E] font-medium"
+                    >Log in</a
+                  >
+                  <a
+                    href="register.html"
+                    class="px-3 py-1 rounded-full border border-[#E3CDA5] font-medium"
+                    >Create account</a
+                  >
+                </div>
+              </div>
+            </div>
+
+            <!-- BID FORM (vises kun hvis logged in, ikke seller, ikke ended) -->
+            <section id="bidFormSection" class="space-y-2 hidden">
+              <h2 class="font-heading text-lg">Place a bid</h2>
+              <p class="text-xs text-evergreenDark/80">
+                Your bid must be higher than the current highest bid.
+              </p>
+
+              <form id="bidForm" class="space-y-3 text-sm">
+                <div class="flex items-center gap-2">
+                  <label for="bidAmount" class="sr-only">Bid amount</label>
+                  <input
+                    type="number"
+                    id="bidAmount"
+                    min="1"
+                    step="1"
+                    class="w-32 px-3 py-2 rounded-md border border-evergreenDark/40 bg-evergreenBg focus:outline-none focus:ring-2 focus:ring-evergreenDark/70"
+                    placeholder="Amount"
+                    required
+                  />
+                  <span class="text-xs text-evergreenDark/80">NOK</span>
+                </div>
+
+                <button
+                  type="submit"
+                  class="w-full bg-evergreenDark text-evergreenTextLight text-xs py-2.5 rounded-full hover:bg-black/80 transition font-medium"
+                >
+                  Place bid
+                </button>
+              </form>
+
+              <p id="bidStatus" class="text-xs mt-1 min-h-[1.25rem]"></p>
+            </section>
+          </aside>
+        </section>
+
+        <!-- BOTTOM: Description + bid history -->
+        <section
+          class="grid grid-cols-1 lg:grid-cols-[minmax(0,1.2fr),minmax(0,1fr)] gap-6 mt-4"
+        >
+          <!-- Description -->
+          <article class="bg-evergreenCard rounded-lg p-4 shadow-md">
+            <h2 class="font-heading text-lg mb-2">Description</h2>
+            <p
+              id="listingDescription"
+              class="text-sm leading-relaxed line-clamp-3"
+            >
+              <!-- description -->
+            </p>
+          </article>
+
+          <!-- Bid history -->
+          <article class="bg-evergreenCard rounded-lg p-4 shadow-md">
+            <h2 class="font-heading text-lg mb-2">Bid history</h2>
+            <div id="bidsList" class="space-y-1 text-xs">
+              <!-- bids list -->
+            </div>
+          </article>
+        </section>
+      </div>
+    </main>
+
+    <footer class="bg-evergreenDark text-evergreenTextLight mt-8">
+      <div
+        class="max-w-6xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between"
+      >
+        <span class="text-xs sm:text-sm">
+          Unregistered users can browse listings. Create an account to bid.
+        </span>
+        <nav class="flex items-center gap-5">
+          <a href="index.html" class="hover:opacity-80">
+            <img src="/media/Home-icon.png" alt="Home" class="h-6 w-6" />
+          </a>
+          <button type="button" class="hover:opacity-80">
+            <img src="/media/Search-icon.png" alt="Search" class="h-6 w-6" />
+          </button>
+
+          <!-- PROFIL-IKON: styres globalt -->
+          <a class="nav-profile-link hover:opacity-80">
+            <img src="/media/User-icon.png" alt="Profile" class="h-7 w-7" />
+          </a>
+        </nav>
+      </div>
+    </footer>
+
+    <!-- JS -->
+    <script type="module" src="js/single-listing.js"></script>
+    <script type="module" src="js/nav-auth.js"></script>
+    <script type="module" src="js/nav-search.js"></script>
+  </body>
+</html>
