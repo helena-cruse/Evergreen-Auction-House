@@ -1,5 +1,4 @@
-// js/profile.js
-import { fetchProfile } from "./api.js";
+import { fetchProfile, fetchListings } from "./api.js";
 import {
   getToken,
   getApiKey,
@@ -113,6 +112,7 @@ function renderListings(listings = [], ownProfile = true) {
         getFirstMediaUrl(listing.media) ||
         "https://images.pexels.com/photos/277319/pexels-photo-277319.jpeg";
       const endsText = formatEndsAt(listing.endsAt);
+      const bidCount = listing._count?.bids ?? listing.bids?.length ?? 0;
 
       const buttonLabel = ownProfile ? "Edit listing" : "View listing";
       const buttonHref = ownProfile
@@ -139,44 +139,35 @@ function renderListings(listings = [], ownProfile = true) {
                   : "No description."
               }
             </p>
-            <p class="text-[11px] text-evergreenDark/80 italic">
-              ${endsText}
-            </p>
+            <p class="text-[11px] text-evergreenDark/80 italic">${endsText}</p>
           </div>
           <div class="mt-3 flex justify-between items-center">
-            <span class="text-[11px] font-semibold">
-              Bids: ${listing._count?.bids ?? 0}
-            </span>
-            <a
-              href="${buttonHref}"
-              class="px-3 py-1 rounded-full bg-evergreenDark text-evergreenTextLight text-[11px] font-semibold hover:bg-black/80 transition"
-            >
-              ${buttonLabel}
-            </a>
+            <span class="text-[11px] font-semibold">Bids: ${bidCount}</span>
+            <a href="${buttonHref}" class="px-3 py-1 rounded-full bg-evergreenDark text-evergreenTextLight text-[11px] font-semibold hover:bg-black/80 transition">${buttonLabel}</a>
           </div>
         </div>
-      </article>
-    `;
+      </article>`;
     })
     .join("");
 }
 
-function renderBids(wins = [], ownProfile = true) {
+function renderBids(listings = [], ownProfile = true) {
   if (!myBidsEl) return;
 
-  if (!wins.length) {
+  if (!listings.length) {
     myBidsEl.innerHTML = ownProfile
-      ? '<p class="text-xs text-evergreenDark/80 text-center">You have not placed any winning bids yet.</p>'
-      : '<p class="text-xs text-evergreenDark/80 text-center">This user has not placed any winning bids yet.</p>';
+      ? '<p class="text-xs text-evergreenDark/80 text-center">You have not placed any bids yet.</p>'
+      : '<p class="text-xs text-evergreenDark/80 text-center">This user has not placed any bids yet.</p>';
     return;
   }
 
-  myBidsEl.innerHTML = wins
+  myBidsEl.innerHTML = listings
     .map((listing) => {
       const img =
         getFirstMediaUrl(listing.media) ||
         "https://images.pexels.com/photos/277319/pexels-photo-277319.jpeg";
       const endsText = formatEndsAt(listing.endsAt);
+      const bidCount = listing._count?.bids ?? listing.bids?.length ?? 0;
 
       return `
       <article class="bg-evergreenCard rounded-lg shadow-md overflow-hidden text-xs flex flex-col">
@@ -198,26 +189,42 @@ function renderBids(wins = [], ownProfile = true) {
                   : "No description."
               }
             </p>
-            <p class="text-[11px] text-evergreenDark/80 italic">
-              ${endsText}
-            </p>
+            <p class="text-[11px] text-evergreenDark/80 italic">${endsText}</p>
           </div>
           <div class="mt-3 flex justify-between items-center">
-            <span class="text-[11px] font-semibold">
-              Bids: ${listing._count?.bids ?? 0}
-            </span>
-            <a
-              href="single-listing.html?id=${listing.id}"
-              class="px-3 py-1 rounded-full bg-evergreenDark text-evergreenTextLight text-[11px] font-semibold hover:bg-black/80 transition"
-            >
-              View listing
-            </a>
+            <span class="text-[11px] font-semibold">Bids: ${bidCount}</span>
+            <a href="single-listing.html?id=${
+              listing.id
+            }" class="px-3 py-1 rounded-full bg-evergreenDark text-evergreenTextLight text-[11px] font-semibold hover:bg-black/80 transition">View listing</a>
           </div>
         </div>
-      </article>
-    `;
+      </article>`;
     })
     .join("");
+}
+
+async function fetchUserBidListings(username) {
+  const listings = await fetchListings({
+    limit: 100,
+    sort: "created",
+    sortOrder: "desc",
+    includeBids: true,
+    active: true,
+  });
+
+  if (!Array.isArray(listings)) return [];
+
+  return listings.filter((listing) =>
+    listing.bids?.some((bid) => {
+      if (bid.bidderName) {
+        return bid.bidderName === username;
+      }
+      if (bid.bidder && bid.bidder.name) {
+        return bid.bidder.name === username;
+      }
+      return false;
+    })
+  );
 }
 
 async function initProfilePage() {
@@ -247,10 +254,12 @@ async function initProfilePage() {
       apiKey
     );
 
+    const bidListings = await fetchUserBidListings(profile.name);
+
     setMessage("");
     renderProfileHeader(profile);
     renderListings(profile.listings || [], isOwnProfile);
-    renderBids(profile.wins || [], isOwnProfile);
+    renderBids(bidListings, isOwnProfile);
 
     if (!isOwnProfile) {
       if (profileActionsWrapper) {
