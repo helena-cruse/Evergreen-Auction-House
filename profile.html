@@ -141,7 +141,7 @@
 
         <section
           id="profileHeader"
-          class="bg-evergreenCard rounded-lg shadow-md px-4 sm:px-6 py-5 flex flex-col md:flex-row gap-4 md:gap-6 items-center md:items-stretch"
+          class="relative bg-evergreenCard rounded-lg shadow-md px-4 sm:px-6 py-5 flex flex-col md:flex-row gap-4 md:gap-6 items-center md:items-stretch overflow-hidden"
         >
           <div class="flex flex-col items-center md:items-center">
             <div
@@ -157,7 +157,7 @@
           </div>
 
           <div
-            class="flex-1 flex flex-col justify-between gap-3 md:gap-2 text-sm"
+            class="flex-1 flex flex-col justify-between gap-3 md:gap-2 text-sm text-evergreenTextLight"
           >
             <div>
               <h1
@@ -167,7 +167,7 @@
               <p id="profileEmail" class="text-xs sm:text-sm mb-1"></p>
               <p
                 id="profileBio"
-                class="text-xs sm:text-sm text-evergreenDark/90"
+                class="text-xs sm:text-sm text-evergreenTextLight/90"
               ></p>
             </div>
 
@@ -190,6 +190,13 @@
                 Edit avatar
               </a>
               <a
+                id="editBannerBtn"
+                href="edit-profile.html#banner"
+                class="profile-owner-only px-4 py-1.5 rounded-full bg-evergreenBg text-evergreenDark text-xs font-semibold tracking-wide border border-evergreenDark/40 hover:bg-white transition"
+              >
+                Edit banner
+              </a>
+              <a
                 id="createListingBtn"
                 href="create-listing.html"
                 class="profile-owner-only px-4 py-1.5 rounded-full bg-evergreenBg text-evergreenDark text-xs font-semibold tracking-wide border border-evergreenDark/40 hover:bg-white transition"
@@ -199,7 +206,7 @@
             </div>
           </div>
           <div
-            class="self-start md:self-stretch flex md:flex-col items-center md:items-end gap-2 text-xs"
+            class="self-start md:self-stretch flex md:flex-col items-center md:items-end gap-2 text-xs text-evergreenTextLight"
           >
             <span class="uppercase tracking-wide text-[11px]"> Credits </span>
             <span

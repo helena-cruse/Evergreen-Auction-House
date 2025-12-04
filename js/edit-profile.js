@@ -14,6 +14,8 @@ const emailInput = document.getElementById("editProfileEmail");
 const bioInput = document.getElementById("editProfileBio");
 const avatarUrlInput = document.getElementById("editProfileAvatarUrl");
 const avatarPreview = document.getElementById("editProfileAvatarPreview");
+const bannerUrlInput = document.getElementById("editProfileBannerUrl");
+const bannerPreview = document.getElementById("editProfileBannerPreview");
 const statusEl = document.getElementById("editProfileStatus");
 const saveBtn = document.getElementById("editProfileSaveBtn");
 
@@ -28,6 +30,11 @@ function setStatus(message, isError) {
 function updateAvatarPreview(url) {
   if (!avatarPreview || !url) return;
   avatarPreview.src = url;
+}
+
+function updateBannerPreview(url) {
+  if (!bannerPreview || !url) return;
+  bannerPreview.src = url;
 }
 
 async function loadProfile() {
@@ -69,6 +76,16 @@ async function loadProfile() {
       avatarUrlInput.value =
         profile.avatar && profile.avatar.url ? profile.avatar.url : "";
 
+    const bannerUrl =
+      profile.banner && profile.banner.url
+        ? profile.banner.url
+        : "https://images.pexels.com/photos/877971/pexels-photo-877971.jpeg";
+
+    if (bannerPreview) bannerPreview.src = bannerUrl;
+    if (bannerUrlInput)
+      bannerUrlInput.value =
+        profile.banner && profile.banner.url ? profile.banner.url : "";
+
     setStatus("", false);
   } catch (error) {
     console.error("Failed to load profile for editing:", error);
@@ -95,7 +112,7 @@ async function handleSubmit(event) {
 
   if (!token || !profileName || !apiKey) {
     setStatus("Missing auth token or API key. Please log in again.", true);
-    setTimeout(() => {
+    setTimeout(function () {
       window.location.href = "login.html";
     }, 900);
     return;
@@ -103,9 +120,11 @@ async function handleSubmit(event) {
 
   const bio = bioInput ? bioInput.value.trim() : "";
   const avatarUrl = avatarUrlInput ? avatarUrlInput.value.trim() : "";
+  const bannerUrl = bannerUrlInput ? bannerUrlInput.value.trim() : "";
 
   const body = {};
-  if (bio) {
+
+  if (bioInput) {
     body.bio = bio;
   }
 
@@ -114,6 +133,18 @@ async function handleSubmit(event) {
       url: avatarUrl,
       alt: "Avatar for " + profileName,
     };
+  }
+
+  if (bannerUrl) {
+    body.banner = {
+      url: bannerUrl,
+      alt: "Banner for " + profileName,
+    };
+  }
+
+  if (!Object.keys(body).length) {
+    setStatus("No changes to save.", false);
+    return;
   }
 
   setStatus("Saving changes...", false);
@@ -166,13 +197,17 @@ async function handleSubmit(event) {
     const existing = getProfile() || {};
     saveAuth({
       accessToken: getToken(),
-      name: existing.name || updated.name,
-      email: existing.email || updated.email,
+      name: updated.name || existing.name,
+      email: updated.email || existing.email,
       avatar: updated.avatar || existing.avatar,
+      banner: updated.banner || existing.banner,
     });
 
     if (updated.avatar && updated.avatar.url) {
       updateAvatarPreview(updated.avatar.url);
+    }
+    if (updated.banner && updated.banner.url) {
+      updateBannerPreview(updated.banner.url);
     }
 
     setStatus("Profile updated successfully!", false);
@@ -199,6 +234,15 @@ if (avatarUrlInput) {
     const url = avatarUrlInput.value.trim();
     if (url) {
       updateAvatarPreview(url);
+    }
+  });
+}
+
+if (bannerUrlInput) {
+  bannerUrlInput.addEventListener("input", function () {
+    const url = bannerUrlInput.value.trim();
+    if (url) {
+      updateBannerPreview(url);
     }
   });
 }

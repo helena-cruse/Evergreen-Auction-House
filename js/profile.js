@@ -8,6 +8,7 @@ import {
 } from "./auth.js";
 
 const profileMessageEl = document.getElementById("profileMessage");
+const profileHeaderEl = document.getElementById("profileHeader");
 const avatarEl = document.getElementById("profileAvatar");
 const nameEl = document.getElementById("profileName");
 const emailEl = document.getElementById("profileEmail");
@@ -65,19 +66,41 @@ function formatEndsAt(endsAt) {
 
 function getFirstMediaUrl(mediaArray) {
   if (!Array.isArray(mediaArray) || mediaArray.length === 0) return null;
-  return mediaArray[0]?.url || null;
+  return mediaArray[0] && mediaArray[0].url ? mediaArray[0].url : null;
 }
 
 function renderProfileHeader(profile) {
   if (!profile) return;
 
+  const bannerUrl =
+    profile.banner && profile.banner.url
+      ? profile.banner.url
+      : "https://images.pexels.com/photos/877971/pexels-photo-877971.jpeg";
+
+  const bannerAlt =
+    profile.banner && profile.banner.alt
+      ? profile.banner.alt
+      : (profile.name || "Profile") + " banner";
+
+  if (profileHeaderEl) {
+    profileHeaderEl.style.backgroundImage = "url('" + bannerUrl + "')";
+    profileHeaderEl.style.backgroundSize = "cover";
+    profileHeaderEl.style.backgroundPosition = "center";
+    profileHeaderEl.style.backgroundRepeat = "no-repeat";
+    profileHeaderEl.setAttribute("aria-label", bannerAlt);
+  }
+
   const avatarUrl =
-    profile.avatar?.url ||
-    "https://images.pexels.com/photos/279211/pexels-photo-279211.jpeg";
+    profile.avatar && profile.avatar.url
+      ? profile.avatar.url
+      : "https://images.pexels.com/photos/279211/pexels-photo-279211.jpeg";
 
   if (avatarEl) {
     avatarEl.src = avatarUrl;
-    avatarEl.alt = profile.avatar?.alt || `${profile.name} avatar`;
+    avatarEl.alt =
+      profile.avatar && profile.avatar.alt
+        ? profile.avatar.alt
+        : (profile.name || "") + " avatar";
   }
 
   if (nameEl) nameEl.textContent = profile.name || "";
@@ -93,7 +116,7 @@ function renderProfileHeader(profile) {
     }
   }
 
-  if (creditsEl) creditsEl.textContent = `${profile.credits ?? 0}`;
+  if (creditsEl) creditsEl.textContent = String(profile.credits ?? 0);
 }
 
 function renderListings(listings = [], ownProfile = true) {
@@ -107,46 +130,63 @@ function renderListings(listings = [], ownProfile = true) {
   }
 
   myListingsEl.innerHTML = listings
-    .map((listing) => {
+    .map(function (listing) {
       const img =
         getFirstMediaUrl(listing.media) ||
         "https://images.pexels.com/photos/277319/pexels-photo-277319.jpeg";
       const endsText = formatEndsAt(listing.endsAt);
-      const bidCount = listing._count?.bids ?? listing.bids?.length ?? 0;
+      const bidCount =
+        (listing._count && typeof listing._count.bids === "number"
+          ? listing._count.bids
+          : Array.isArray(listing.bids)
+          ? listing.bids.length
+          : 0) || 0;
 
       const buttonLabel = ownProfile ? "Edit listing" : "View listing";
       const buttonHref = ownProfile
-        ? `edit-listing.html?id=${listing.id}`
-        : `single-listing.html?id=${listing.id}`;
+        ? "edit-listing.html?id=" + listing.id
+        : "single-listing.html?id=" + listing.id;
 
-      return `
-      <article class="bg-evergreenCard rounded-lg shadow-md overflow-hidden text-xs flex flex-col">
-        <div class="aspect-[4/3] bg-evergreenBg/60">
-          <img src="${img}" alt="${
-        listing.title || "Listing image"
-      }" class="w-full h-full object-cover" />
-        </div>
-        <div class="p-3 flex-1 flex flex-col justify-between">
-          <div>
-            <h3 class="font-heading text-sm mb-1">${
-              listing.title || "Untitled"
-            }</h3>
-            <p class="text-[11px] text-evergreenDark/90 mb-1">
-              ${
-                listing.description
-                  ? listing.description.slice(0, 60) +
-                    (listing.description.length > 60 ? "…" : "")
-                  : "No description."
-              }
-            </p>
-            <p class="text-[11px] text-evergreenDark/80 italic">${endsText}</p>
-          </div>
-          <div class="mt-3 flex justify-between items-center">
-            <span class="text-[11px] font-semibold">Bids: ${bidCount}</span>
-            <a href="${buttonHref}" class="px-3 py-1 rounded-full bg-evergreenDark text-evergreenTextLight text-[11px] font-semibold hover:bg-black/80 transition">${buttonLabel}</a>
-          </div>
-        </div>
-      </article>`;
+      const description =
+        listing.description && listing.description.length
+          ? listing.description.slice(0, 60) +
+            (listing.description.length > 60 ? "…" : "")
+          : "No description.";
+
+      return (
+        '<article class="bg-evergreenCard rounded-lg shadow-md overflow-hidden text-xs flex flex-col">' +
+        '<div class="aspect-[4/3] bg-evergreenBg/60">' +
+        '<img src="' +
+        img +
+        '" alt="' +
+        (listing.title || "Listing image") +
+        '" class="w-full h-full object-cover" />' +
+        "</div>" +
+        '<div class="p-3 flex-1 flex flex-col justify-between">' +
+        "<div>" +
+        '<h3 class="font-heading text-sm mb-1">' +
+        (listing.title || "Untitled") +
+        "</h3>" +
+        '<p class="text-[11px] text-evergreenDark/90 mb-1">' +
+        description +
+        "</p>" +
+        '<p class="text-[11px] text-evergreenDark/80 italic">' +
+        endsText +
+        "</p>" +
+        "</div>" +
+        '<div class="mt-3 flex justify-between items-center">' +
+        '<span class="text-[11px] font-semibold">Bids: ' +
+        bidCount +
+        "</span>" +
+        '<a href="' +
+        buttonHref +
+        '" class="px-3 py-1 rounded-full bg-evergreenDark text-evergreenTextLight text-[11px] font-semibold hover:bg-black/80 transition">' +
+        buttonLabel +
+        "</a>" +
+        "</div>" +
+        "</div>" +
+        "</article>"
+      );
     })
     .join("");
 }
@@ -162,43 +202,56 @@ function renderBids(listings = [], ownProfile = true) {
   }
 
   myBidsEl.innerHTML = listings
-    .map((listing) => {
+    .map(function (listing) {
       const img =
         getFirstMediaUrl(listing.media) ||
         "https://images.pexels.com/photos/277319/pexels-photo-277319.jpeg";
       const endsText = formatEndsAt(listing.endsAt);
-      const bidCount = listing._count?.bids ?? listing.bids?.length ?? 0;
+      const bidCount =
+        (listing._count && typeof listing._count.bids === "number"
+          ? listing._count.bids
+          : Array.isArray(listing.bids)
+          ? listing.bids.length
+          : 0) || 0;
 
-      return `
-      <article class="bg-evergreenCard rounded-lg shadow-md overflow-hidden text-xs flex flex-col">
-        <div class="aspect-[4/3] bg-evergreenBg/60">
-          <img src="${img}" alt="${
-        listing.title || "Listing image"
-      }" class="w-full h-full object-cover" />
-        </div>
-        <div class="p-3 flex-1 flex flex-col justify-between">
-          <div>
-            <h3 class="font-heading text-sm mb-1">${
-              listing.title || "Untitled"
-            }</h3>
-            <p class="text-[11px] text-evergreenDark/90 mb-1">
-              ${
-                listing.description
-                  ? listing.description.slice(0, 60) +
-                    (listing.description.length > 60 ? "…" : "")
-                  : "No description."
-              }
-            </p>
-            <p class="text-[11px] text-evergreenDark/80 italic">${endsText}</p>
-          </div>
-          <div class="mt-3 flex justify-between items-center">
-            <span class="text-[11px] font-semibold">Bids: ${bidCount}</span>
-            <a href="single-listing.html?id=${
-              listing.id
-            }" class="px-3 py-1 rounded-full bg-evergreenDark text-evergreenTextLight text-[11px] font-semibold hover:bg-black/80 transition">View listing</a>
-          </div>
-        </div>
-      </article>`;
+      const description =
+        listing.description && listing.description.length
+          ? listing.description.slice(0, 60) +
+            (listing.description.length > 60 ? "…" : "")
+          : "No description.";
+
+      return (
+        '<article class="bg-evergreenCard rounded-lg shadow-md overflow-hidden text-xs flex flex-col">' +
+        '<div class="aspect-[4/3] bg-evergreenBg/60">' +
+        '<img src="' +
+        img +
+        '" alt="' +
+        (listing.title || "Listing image") +
+        '" class="w-full h-full object-cover" />' +
+        "</div>" +
+        '<div class="p-3 flex-1 flex flex-col justify-between">' +
+        "<div>" +
+        '<h3 class="font-heading text-sm mb-1">' +
+        (listing.title || "Untitled") +
+        "</h3>" +
+        '<p class="text-[11px] text-evergreenDark/90 mb-1">' +
+        description +
+        "</p>" +
+        '<p class="text-[11px] text-evergreenDark/80 italic">' +
+        endsText +
+        "</p>" +
+        "</div>" +
+        '<div class="mt-3 flex justify-between items-center">' +
+        '<span class="text-[11px] font-semibold">Bids: ' +
+        bidCount +
+        "</span>" +
+        '<a href="single-listing.html?id=' +
+        listing.id +
+        '" class="px-3 py-1 rounded-full bg-evergreenDark text-evergreenTextLight text-[11px] font-semibold hover:bg-black/80 transition">View listing</a>' +
+        "</div>" +
+        "</div>" +
+        "</article>"
+      );
     })
     .join("");
 }
@@ -214,8 +267,9 @@ async function fetchUserBidListings(username) {
 
   if (!Array.isArray(listings)) return [];
 
-  return listings.filter((listing) =>
-    listing.bids?.some((bid) => {
+  return listings.filter(function (listing) {
+    if (!Array.isArray(listing.bids)) return false;
+    return listing.bids.some(function (bid) {
       if (bid.bidderName) {
         return bid.bidderName === username;
       }
@@ -223,8 +277,8 @@ async function fetchUserBidListings(username) {
         return bid.bidder.name === username;
       }
       return false;
-    })
-  );
+    });
+  });
 }
 
 async function initProfilePage() {
@@ -267,7 +321,9 @@ async function initProfilePage() {
       }
 
       const ownerEls = document.querySelectorAll(".profile-owner-only");
-      ownerEls.forEach((el) => el.classList.add("hidden"));
+      ownerEls.forEach(function (el) {
+        el.classList.add("hidden");
+      });
 
       if (!profileActionsWrapper && !ownerEls.length) {
         if (editProfileBtn) editProfileBtn.classList.add("hidden");
@@ -285,12 +341,12 @@ async function initProfilePage() {
 }
 
 if (logoutBtn) {
-  logoutBtn.addEventListener("click", () => {
+  logoutBtn.addEventListener("click", function () {
     logout();
     window.location.href = "index.html";
   });
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", function () {
   initProfilePage();
 });
