@@ -31,7 +31,7 @@ if (form) {
     setMessage("");
 
     try {
-      await loginUser({ email, password }); // auth.js håndterer alt
+      await loginUser({ email, password });
       setMessage("Logged in successfully!");
 
       setTimeout(() => {

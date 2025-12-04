@@ -1,5 +1,3 @@
-// js/register.js
-
 const NOROFF_API_BASE = "https://v2.api.noroff.dev";
 
 const form = document.getElementById("registerForm");
@@ -9,20 +7,12 @@ const passwordInput = document.getElementById("password");
 const confirmPasswordInput = document.getElementById("confirmPassword");
 const messageEl = document.getElementById("registerMessage");
 
-/**
- * Enkel validering i henhold til Noroff v2-register:
- * - name: ingen spesialtegn (kun bokstaver/tall/underscore)
- * - email: må slutte på @stud.noroff.no
- * - password: min 8 tegn
- * - confirm: må matche
- */
 function validateForm() {
   const name = nameInput.value.trim();
   const email = emailInput.value.trim().toLowerCase();
   const password = passwordInput.value;
   const confirmPassword = confirmPasswordInput.value;
 
-  // Name
   const nameRegex = /^[A-Za-z0-9_]+$/;
   if (!nameRegex.test(name)) {
     showMessage(
@@ -32,19 +22,16 @@ function validateForm() {
     return false;
   }
 
-  // Email (kun stud.noroff.no som i brief)
   if (!email.endsWith("@stud.noroff.no")) {
     showMessage("Email must end with @stud.noroff.no.", true);
     return false;
   }
 
-  // Password length
   if (password.length < 8) {
     showMessage("Password must be at least 8 characters.", true);
     return false;
   }
 
-  // Confirm password
   if (password !== confirmPassword) {
     showMessage("Passwords do not match.", true);
     return false;
