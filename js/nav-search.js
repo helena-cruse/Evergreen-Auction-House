@@ -10,17 +10,23 @@ const closeSearchBtn = document.getElementById("closeSearchBtn");
 let debounceTimer = null;
 
 function clearResults() {
+  if (!resultsBox) return;
   resultsBox.innerHTML = "";
 }
 
-function setMessage(msg) {
-  resultsBox.innerHTML = `<p class="text-xs text-center py-2 text-evergreenDark/70">${msg}</p>`;
+function setMessage(message) {
+  if (!resultsBox) return;
+  resultsBox.innerHTML = `<p class="text-xs text-center py-3 text-evergreenDark/70">${message}</p>`;
 }
 
 function toggleDropdown(show) {
   if (!searchWrapper) return;
-  if (show) searchWrapper.classList.remove("hidden");
-  else searchWrapper.classList.add("hidden");
+
+  searchWrapper.classList.toggle("hidden", !show);
+
+  if (show) {
+    searchInput?.focus();
+  }
 }
 
 async function searchListings(query) {
@@ -69,30 +75,35 @@ async function searchProfiles(query) {
 function renderResults(listings = [], profiles = []) {
   clearResults();
 
+  if (!resultsBox) return;
+
   if (listings.length === 0 && profiles.length === 0) {
-    return setMessage("No matching results found.");
+    setMessage("No matching results found.");
+    return;
   }
 
   const container = document.createElement("div");
-  container.className = "space-y-3";
+  container.className = "space-y-4";
 
   if (listings.length > 0) {
     const section = document.createElement("div");
-    section.innerHTML = `<p class="text-xs font-semibold text-evergreenDark/70 px-2">Listings</p>`;
+    section.innerHTML = `<p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-evergreenDark/60 px-2 mb-1">Listings</p>`;
 
     listings.slice(0, 6).forEach((item) => {
-      const div = document.createElement("a");
-      div.href = `single-listing.html?id=${item.id}`;
-      div.className =
-        "block px-3 py-2 hover:bg-evergreenDark/10 rounded-lg cursor-pointer text-sm";
-      div.innerHTML = `
-        <span class="font-medium">${item.title}</span>
+      const link = document.createElement("a");
+      link.href = `single-listing.html?id=${item.id}`;
+      link.className =
+        "block px-3 py-2 hover:bg-evergreenDark/10 rounded-xl text-sm transition";
+
+      link.innerHTML = `
+        <span class="font-semibold">${item.title || "Untitled listing"}</span>
         <br />
-        <span class="text-xs text-evergreenDark/60">${
-          item.description?.slice(0, 50) || ""
-        }</span>
+        <span class="text-xs text-evergreenDark/60">
+          ${item.description?.slice(0, 56) || "View auction details"}
+        </span>
       `;
-      section.appendChild(div);
+
+      section.appendChild(link);
     });
 
     container.appendChild(section);
@@ -100,19 +111,23 @@ function renderResults(listings = [], profiles = []) {
 
   if (profiles.length > 0) {
     const section = document.createElement("div");
-    section.innerHTML = `<p class="text-xs font-semibold text-evergreenDark/70 px-2">Users</p>`;
+    section.innerHTML = `<p class="text-[11px] font-semibold uppercase tracking-[0.16em] text-evergreenDark/60 px-2 mb-1">Users</p>`;
 
     profiles.slice(0, 6).forEach((profile) => {
-      const div = document.createElement("a");
-      div.href = `profile.html?user=${profile.name}`;
-      div.className =
-        "block px-3 py-2 hover:bg-evergreenDark/10 rounded-lg cursor-pointer text-sm";
-      div.innerHTML = `
-        <span class="font-medium">${profile.name}</span>
+      const link = document.createElement("a");
+      link.href = `profile.html?user=${profile.name}`;
+      link.className =
+        "block px-3 py-2 hover:bg-evergreenDark/10 rounded-xl text-sm transition";
+
+      link.innerHTML = `
+        <span class="font-semibold">${profile.name}</span>
         <br />
-        <span class="text-xs text-evergreenDark/60">${profile.email}</span>
+        <span class="text-xs text-evergreenDark/60">${
+          profile.email || ""
+        }</span>
       `;
-      section.appendChild(div);
+
+      section.appendChild(link);
     });
 
     container.appendChild(section);
@@ -123,7 +138,7 @@ function renderResults(listings = [], profiles = []) {
 
 async function runSearch(query) {
   if (!query.trim()) {
-    clearResults();
+    setMessage("Type to search listings.");
     return;
   }
 
@@ -137,25 +152,35 @@ async function runSearch(query) {
   renderResults(listings, profiles);
 }
 
-searchInput?.addEventListener("input", (e) => {
-  const value = e.target.value;
-
+searchInput?.addEventListener("input", (event) => {
   clearTimeout(debounceTimer);
-  debounceTimer = setTimeout(() => runSearch(value), 300);
+  debounceTimer = setTimeout(() => runSearch(event.target.value), 300);
 });
 
 searchIconBtn?.addEventListener("click", () => {
   toggleDropdown(true);
-  searchInput?.focus();
+  setMessage("Type to search listings.");
 });
 
 closeSearchBtn?.addEventListener("click", () => {
   toggleDropdown(false);
-  searchInput.value = "";
+
+  if (searchInput) {
+    searchInput.value = "";
+  }
+
   clearResults();
 });
 
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape") {
+    toggleDropdown(false);
+  }
+});
+
 document.addEventListener("click", (event) => {
+  if (!searchWrapper || !searchIconBtn) return;
+
   if (
     !searchWrapper.contains(event.target) &&
     !searchIconBtn.contains(event.target)
