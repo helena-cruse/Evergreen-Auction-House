@@ -2,72 +2,148 @@ import { fetchListings } from "./api.js";
 
 const listingsGrid = document.getElementById("listingsGrid");
 const sortSelect = document.getElementById("sortSelect");
+const categoryInputs = document.querySelectorAll(
+  "aside input[type='checkbox']"
+);
+const priceRangeInput = document.getElementById("priceRangeInput");
+const priceRangeValue = document.getElementById("priceRangeValue");
+
+const THREE_DAYS = 1000 * 60 * 60 * 24 * 3;
+
+const endingSoonInput = Array.from(categoryInputs).find((input) =>
+  input.closest("label")?.textContent.toLowerCase().includes("ending within")
+);
 
 let listingsData = [];
 
 function getHighestBid(listing) {
-  if (!listing.bids || listing.bids.length === 0) {
-    return null;
-  }
-  return listing.bids.reduce((max, bid) => {
-    return bid.amount > max ? bid.amount : max;
-  }, 0);
+  if (!listing.bids || listing.bids.length === 0) return null;
+  return listing.bids.reduce((max, bid) => Math.max(max, bid.amount), 0);
+}
+
+function isEnded(endsAt) {
+  return new Date(endsAt) <= new Date();
 }
 
 function formatTimeRemaining(endsAt) {
-  const end = new Date(endsAt);
-  const now = new Date();
+  const diff = new Date(endsAt) - new Date();
 
-  const diff = end - now;
   if (diff <= 0) return "Ended";
 
-  const hours = Math.floor(diff / (1000 * 60 * 60));
+  const minutes = Math.floor(diff / (1000 * 60));
+  const hours = Math.floor(minutes / 60);
   const days = Math.floor(hours / 24);
 
-  if (days > 0) return `Ends in ${days} day${days > 1 ? "s" : ""}`;
-  if (hours > 0) return `Ends in ${hours} hour${hours > 1 ? "s" : ""}`;
-
-  const minutes = Math.floor(diff / (1000 * 60));
-  return `Ends in ${minutes} min`;
+  if (days > 0) return `${days} day${days > 1 ? "s" : ""} left`;
+  if (hours > 0) return `${hours} hour${hours > 1 ? "s" : ""} left`;
+  return `${minutes} min left`;
 }
 
 function getListingImage(listing) {
-  if (listing.media && listing.media.length > 0 && listing.media[0].url) {
-    return listing.media[0].url;
+  return (
+    listing.media?.find((item) => item?.url)?.url ||
+    "https://images.pexels.com/photos/277319/pexels-photo-277319.jpeg"
+  );
+}
+
+function getSelectedCategories() {
+  return Array.from(categoryInputs)
+    .filter((input) => input.checked)
+    .map((input) => input.closest("label")?.textContent.trim().toLowerCase())
+    .filter((value) => value && !value.includes("ending within"));
+}
+
+function matchesCategory(listing, selectedCategories) {
+  if (selectedCategories.length === 0) return true;
+
+  const searchableText = [
+    listing.title,
+    listing.description,
+    ...(listing.tags || []),
+  ]
+    .join(" ")
+    .toLowerCase();
+
+  return selectedCategories.some((category) =>
+    searchableText.includes(category)
+  );
+}
+
+function getFilteredListings() {
+  const selectedCategories = getSelectedCategories();
+  const maxPrice = Number(priceRangeInput?.value || 500);
+
+  if (priceRangeValue) {
+    priceRangeValue.textContent = maxPrice >= 500 ? "$500+" : `$${maxPrice}`;
   }
-  return "https://images.pexels.com/photos/277319/pexels-photo-277319.jpeg";
+
+  return listingsData.filter((listing) => {
+    const highestBid = getHighestBid(listing) ?? 0;
+    const timeUntilEnd = new Date(listing.endsAt) - new Date();
+
+    const categoryMatch = matchesCategory(listing, selectedCategories);
+    const priceMatch = maxPrice >= 500 ? true : highestBid <= maxPrice;
+    const endingSoonMatch = endingSoonInput?.checked
+      ? !isEnded(listing.endsAt) && timeUntilEnd <= THREE_DAYS
+      : true;
+
+    return categoryMatch && priceMatch && endingSoonMatch;
+  });
 }
 
 function renderListings(listings) {
   if (!listingsGrid) return;
 
   if (!listings || listings.length === 0) {
-    listingsGrid.innerHTML =
-      '<p class="col-span-full text-sm text-center text-evergreenDark/80">No listings found.</p>';
+    listingsGrid.innerHTML = `
+      <div class="col-span-full bg-evergreenCard rounded-xl border border-evergreenDark/20 p-8 text-center shadow-sm">
+        <p class="font-heading text-xl mb-2">No auctions matched your filters.</p>
+        <p class="text-sm text-evergreenDark/80">Try changing the category, price range or sort option.</p>
+      </div>
+    `;
     return;
   }
 
-  const html = listings
+  listingsGrid.innerHTML = listings
     .map((listing) => {
       const imageUrl = getListingImage(listing);
       const highestBid = getHighestBid(listing);
       const bidCount = listing._count?.bids ?? listing.bids?.length ?? 0;
       const timeRemaining = formatTimeRemaining(listing.endsAt);
+      const ended = isEnded(listing.endsAt);
       const tag = listing.tags?.[0] ?? "Auction";
 
       return `
-        <article
-          class="bg-evergreenCard rounded-xl shadow-sm overflow-hidden flex flex-col border border-evergreenDark/20"
-        >
-          <div
-            class="h-40 bg-cover bg-center"
-            style="background-image: url('${imageUrl}');"
-          ></div>
+        <article class="group bg-evergreenCard rounded-2xl shadow-md overflow-hidden flex flex-col border border-evergreenDark/20 hover:-translate-y-1 hover:shadow-xl transition duration-200">
+          <a href="single-listing.html?id=${
+            listing.id
+          }" class="block relative h-48 bg-evergreenBg overflow-hidden">
+            <img
+              src="${imageUrl}"
+              alt="${
+                listing.media?.[0]?.alt || listing.title || "Auction listing"
+              }"
+              class="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+              loading="lazy"
+            />
+            <div class="absolute left-3 top-3">
+              <span class="px-3 py-1 rounded-full text-[11px] font-semibold ${
+                ended
+                  ? "bg-red-900 text-red-50"
+                  : "bg-evergreenDark text-evergreenTextLight"
+              }">
+                ${timeRemaining}
+              </span>
+            </div>
+          </a>
 
-          <div class="p-3.5 text-sm flex-1 flex flex-col gap-1.5">
-            <h3 class="font-heading text-base leading-snug line-clamp-2">
-              ${listing.title}
-            </h3>
+          <div class="p-4 flex-1 flex flex-col gap-3">
+            <div>
+              <p class="text-[11px] uppercase tracking-[0.18em] text-evergreenDark/70 mb-1">${tag}</p>
+              <h3 class="font-heading text-lg leading-snug line-clamp-2">
+                ${listing.title || "Untitled auction"}
+              </h3>
+            </div>
 
             <p class="text-xs text-evergreenDark/80">
               Seller: <span class="font-semibold">${
@@ -75,63 +151,45 @@ function renderListings(listings) {
               }</span>
             </p>
 
-            <p class="font-semibold text-sm">
-              ${
-                highestBid !== null
-                  ? `Current bid: ${highestBid},-`
-                  : "No bids yet"
-              }
-            </p>
-
-            <p class="text-[11px] uppercase tracking-wide text-evergreenDark/80">
-              ${timeRemaining}
-            </p>
-
-            <div class="mt-2 flex gap-2 text-xs flex-wrap">
-              <span class="px-2 py-0.5 rounded-full bg-evergreenBg/60">
-                ${bidCount} bid${bidCount === 1 ? "" : "s"}
-              </span>
-              <span class="px-2 py-0.5 rounded-full border border-evergreenDark/30">
-                ${tag}
-              </span>
+            <div class="grid grid-cols-2 gap-2 text-xs">
+              <div class="rounded-xl bg-evergreenBg/70 p-3">
+                <p class="uppercase tracking-wide text-evergreenDark/60 text-[10px]">Highest bid</p>
+                <p class="font-semibold text-sm">
+                  ${highestBid !== null ? `${highestBid},-` : "No bids"}
+                </p>
+              </div>
+              <div class="rounded-xl bg-evergreenBg/70 p-3">
+                <p class="uppercase tracking-wide text-evergreenDark/60 text-[10px]">Bids</p>
+                <p class="font-semibold text-sm">${bidCount}</p>
+              </div>
             </div>
 
             <a
               href="single-listing.html?id=${listing.id}"
-              class="mt-3 w-full bg-evergreenDark text-evergreenTextLight text-xs py-1.5 rounded-full 
-                     text-center font-medium hover:bg-black/80 transition"
+              class="mt-auto w-full bg-evergreenDark text-evergreenTextLight text-xs py-2.5 rounded-full text-center font-semibold hover:bg-black transition"
             >
-              View listing
+              View auction
             </a>
           </div>
         </article>
       `;
     })
     .join("");
-
-  listingsGrid.innerHTML = html;
 }
 
 function sortListings(option) {
-  const sorted = [...listingsData];
+  const sorted = [...getFilteredListings()];
 
   switch (option) {
     case "endingSoon":
       sorted.sort((a, b) => new Date(a.endsAt) - new Date(b.endsAt));
       break;
-
     case "priceLowHigh":
-      sorted.sort((a, b) => {
-        return (getHighestBid(a) ?? 0) - (getHighestBid(b) ?? 0);
-      });
+      sorted.sort((a, b) => (getHighestBid(a) ?? 0) - (getHighestBid(b) ?? 0));
       break;
-
     case "priceHighLow":
-      sorted.sort((a, b) => {
-        return (getHighestBid(b) ?? 0) - (getHighestBid(a) ?? 0);
-      });
+      sorted.sort((a, b) => (getHighestBid(b) ?? 0) - (getHighestBid(a) ?? 0));
       break;
-
     case "newest":
     default:
       sorted.sort((a, b) => new Date(b.created) - new Date(a.created));
@@ -144,11 +202,15 @@ function sortListings(option) {
 async function initHomePage() {
   if (!listingsGrid) return;
 
-  listingsGrid.innerHTML =
-    '<p class="col-span-full text-sm text-center text-evergreenDark/80">Loading listings...</p>';
+  listingsGrid.innerHTML = `
+    <div class="col-span-full bg-evergreenCard rounded-xl p-8 text-center shadow-sm">
+      <p class="font-heading text-xl mb-2">Loading auctions...</p>
+      <p class="text-sm text-evergreenDark/80">Finding active listings from Evergreen Auction House.</p>
+    </div>
+  `;
 
   try {
-    const data = await fetchListings({
+    listingsData = await fetchListings({
       limit: 21,
       sort: "created",
       sortOrder: "desc",
@@ -156,11 +218,14 @@ async function initHomePage() {
       active: true,
     });
 
-    listingsData = data;
-    sortListings(sortSelect.value);
+    sortListings(sortSelect?.value || "newest");
   } catch (err) {
-    listingsGrid.innerHTML =
-      '<p class="col-span-full text-center text-red-700">Failed to load listings.</p>';
+    listingsGrid.innerHTML = `
+      <div class="col-span-full bg-red-100 border border-red-700/30 text-red-900 rounded-xl p-8 text-center">
+        <p class="font-heading text-xl mb-2">Could not load auctions.</p>
+        <p class="text-sm">Please refresh the page or try again later.</p>
+      </div>
+    `;
   }
 }
 
@@ -170,6 +235,18 @@ document.addEventListener("DOMContentLoaded", () => {
   if (sortSelect) {
     sortSelect.addEventListener("change", (e) => {
       sortListings(e.target.value);
+    });
+  }
+
+  categoryInputs.forEach((input) => {
+    input.addEventListener("change", () => {
+      sortListings(sortSelect?.value || "newest");
+    });
+  });
+
+  if (priceRangeInput) {
+    priceRangeInput.addEventListener("input", () => {
+      sortListings(sortSelect?.value || "newest");
     });
   }
 });

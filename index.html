@@ -120,7 +120,6 @@
                   ✕
                 </button>
               </div>
-
               <div
                 id="navSearchResults"
                 class="max-h-64 overflow-y-auto text-sm"
@@ -164,21 +163,18 @@
                     <span class="text-[#0F3B2E]">Art</span>
                   </label>
                 </li>
-
                 <li>
                   <label class="flex items-center gap-3 cursor-pointer">
                     <input type="checkbox" class="accent-[#0F3B2E] w-4 h-4" />
                     <span class="text-[#0F3B2E]">Jewelry</span>
                   </label>
                 </li>
-
                 <li>
                   <label class="flex items-center gap-3 cursor-pointer">
                     <input type="checkbox" class="accent-[#0F3B2E] w-4 h-4" />
                     <span class="text-[#0F3B2E]">Collectibles</span>
                   </label>
                 </li>
-
                 <li>
                   <label class="flex items-center gap-3 cursor-pointer">
                     <input type="checkbox" class="accent-[#0F3B2E] w-4 h-4" />
@@ -199,20 +195,31 @@
 
               <div class="flex justify-between text-xs text-[#0F3B2E]/80 mb-2">
                 <span>$0</span>
-                <span>$500</span>
+                <span id="priceRangeValue">$500+</span>
               </div>
 
-              <div class="h-1 bg-[#E3CDA5] rounded-full relative">
-                <div
-                  class="absolute left-1/5 right-1/3 bg-[#0F3B2E] h-1 rounded-full"
-                ></div>
-              </div>
+              <input
+                id="priceRangeInput"
+                type="range"
+                min="0"
+                max="500"
+                value="500"
+                step="10"
+                class="w-full accent-[#0F3B2E] cursor-pointer"
+                aria-label="Maximum bid price"
+              />
+
+              <p class="mt-2 text-xs text-[#0F3B2E]/70">
+                Showing auctions up to selected highest bid.
+              </p>
             </div>
+
             <hr class="border-[#0F3B2E]/30" />
+
             <div
               class="flex items-center justify-between text-sm text-[#0F3B2E]"
             >
-              <span>Ending soon</span>
+              <span>Ending within 3 days</span>
 
               <label class="inline-flex items-center cursor-pointer">
                 <span class="relative">
@@ -254,6 +261,7 @@
                 </select>
               </div>
             </div>
+
             <div
               id="listingsGrid"
               class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"
@@ -283,6 +291,7 @@
         </nav>
       </div>
     </footer>
+
     <script type="module" src="js/home.js"></script>
     <script type="module" src="js/nav-auth.js"></script>
     <script type="module" src="js/nav-search.js"></script>
