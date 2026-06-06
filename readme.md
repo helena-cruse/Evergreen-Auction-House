@@ -1,158 +1,171 @@
 # Evergreen Auction House
 
-Semester Project 2 – Front-End Development
+Evergreen Auction House is an auction platform developed as Semester Project 2 during my Front-End Development studies at Noroff.
 
-## Description
+The project combines authentication, listing creation, bidding functionality and profile management through the Noroff Auction API. It became the largest and most complex project I worked on during the programme and gave me practical experience building a complete frontend application around live API data.
 
-Evergreen Auction House is a front-end application built for Semester Project 2.  
-The website allows users to register, log in, browse listings, view single listings, place bids, and create their own listings. All data is retrieved from the Noroff Auction API.
+## Live Site
 
-The goal of the project was to build a functional and responsive user interface using HTML, Tailwind CSS, and JavaScript, while working with live API data and authentication.
+https://evergreen-auction.netlify.app
 
-## Features
+## Repository
+
+https://github.com/helena-cruse/Evergreen-Auction-House
+
+---
+
+## Project Overview
+
+Evergreen Auction House allows users to create auction listings, place bids and manage their own profile through a responsive web application.
+
+Visitors can browse active listings without logging in, while registered users gain access to bidding, listing creation and profile management features.
+
+The application was built with a focus on creating a clear browsing experience where users can quickly evaluate listings, monitor bidding activity and manage their own auctions.
+
+---
+
+## Key Features
 
 ### Authentication
 
-- Register new users
-- Log in with email and password
-- Token is stored in LocalStorage
-- Logged-in users see different UI elements than visitors
-- The "Unregistered users can browse listings" message is hidden when logged in
+Users can:
 
-### Listings
+* Register a new account
+* Log in and log out
+* Access protected functionality
+* Store authentication data locally
 
-- Fetch and display all listings from the Noroff Auction API
-- Each listing card shows title, image, seller name, and number of bids
-- Clicking a listing card opens the single listing page
+### Auction Listings
 
-### Single Listing Page
+Users can:
 
-- Displays all listing details including:
-  - Title
-  - Description
-  - Seller
-  - Bids
-  - Time remaining
-- Image carousel:
-  - Shows one image at a time
-  - Left and right arrows for navigation
-- Bid functionality for logged-in users
+* Browse active listings
+* Open individual auction pages
+* View seller information
+* View bid history
+* See auction end dates and time remaining
+
+### Bidding
+
+Authenticated users can:
+
+* Place bids on active listings
+* View the current highest bid
+* Track bidding activity
+* Manage their available credits
 
 ### Create Listing
 
-- Form to create a new listing with:
-  - Title
-  - Description
-  - End date
-  - Image URL
-- Sends data to the API
-- Shows validation or error messages if needed
+Authenticated users can:
 
-### Profile Page
+* Create new auction listings
+* Add descriptions and images
+* Set auction end dates
+* Publish listings directly through the API
 
-- Displays the logged-in user’s information
-- Shows:
-  - User’s own listings
-  - User’s bids
-- Loads all profile data from the API using the stored token
+### Profile Area
 
-## Credits System
+Users can:
 
-The Noroff Auction API uses a credit-based system.  
-All new users start with 1000 credits.
+* View profile information
+* See listings they have created
+* View bidding activity
+* Monitor account credits
 
-Credits affect:
+---
 
-- Bidding (users must have enough credits to place bids)
-- Displaying the user's remaining balance on the profile page
+## Portfolio 2 Improvements
+
+For Portfolio 2, I revisited the project and focused on improving the browsing experience and overall usability.
+
+Improvements included:
+
+* Improved listing presentation and visual hierarchy
+* Added working price range filtering
+* Added an ending-soon filter for auctions ending within three days
+* Improved browsing and discovery of active listings
+* Refined overall layout and responsive behaviour
+
+The goal was not to rebuild the application, but to improve the parts users interact with most frequently.
+
+---
 
 ## Technologies Used
 
-- HTML5
-- CSS with Tailwind (CDN)
-- JavaScript
-- Noroff Auction API
-- Git and GitHub
-- VS Code
-- Netlify
+* HTML
+* Tailwind CSS
+* JavaScript
+* Noroff Auction API
+* Git
+* GitHub
+* Netlify
+* VS Code
 
-## API Usage
+---
 
-The project communicates with the Noroff Auction API at:
+## API
 
-`https://v2.api.noroff.dev`
+The application uses the Noroff Auction API.
 
-All requests are made using `fetch` with basic error handling, and authenticated requests include a bearer token and a static API key when required.
+Base URL:
 
-### Authentication
+```txt
+https://v2.api.noroff.dev
+```
 
-- `POST /auth/register` – Creates a new user (name, email, password, optional avatar).
-- `POST /auth/login` – Authenticates a user and returns an access token.  
-  The token and profile data are stored in `localStorage` for later use.
+Main functionality includes:
 
-### Listings
+* User authentication
+* Listing retrieval
+* Listing creation
+* Profile data
+* Search functionality
+* Bid placement
 
-- `GET /auction/listings`  
-  Used for the main feed. Supports the following query parameters:
+Authenticated requests use:
 
-  - `limit`, `page`, `sort`, `sortOrder`
-  - `_seller=true` to include seller data
-  - `_active=true` to filter active listings
-  - `_bids=true` to include bid information
+```txt
+Authorization: Bearer <token>
+X-Noroff-API-Key: <api-key>
+```
 
-- `GET /auction/listings/:id`  
-  Retrieves a single listing with optional `_seller` and `_bids` data.
+---
 
-### Profile
+## Getting Started
 
-- `GET /auction/profiles/:name`  
-  Used to load the logged-in user's profile, listings, and wins.  
-  Supports:
-  - `_listings=true`
-  - `_wins=true`
+### Clone the repository
 
-Authenticated requests include:
+```bash
+git clone https://github.com/helena-cruse/Evergreen-Auction-House.git
+```
 
-- `Authorization: Bearer <token>`
-- `X-Noroff-API-Key: <api-key>`
+### Run locally
 
-### Search
-
-- `GET /auction/listings/search?q=<term>&_seller=true`
-- `GET /auction/profiles/search?q=<term>`
-
-Used for the site's search functionality.
-
-### Bids
-
-- `POST /auction/listings/:id/bids`  
-  Places a bid on a listing.  
-  Requires authentication and sends `{ amount: Number }` in the request body.
-
-## Running the Project
-
-1. Clone the repository:
-2. Open the project in VS Code
-3. Use a local server such as Live Server
-4. Open `index.html`
+Open the project in Visual Studio Code and launch a local development server such as Live Server.
 
 No build tools are required.
 
-## Testing
+---
 
-The project has been manually tested for:
+## What I Learned
 
-- Registering and logging in
-- Token storage and logout
-- Viewing listings and single listings
-- Carousel functionality with one or more images
-- Creating a listing
-- Placing bids
-- API error handling
-- Responsive design (mobile, tablet, desktop)
+This project taught me how different parts of a larger application depend on each other.
 
-## Author
+Working with authentication, API communication, profile management and auction functionality at the same time forced me to think more carefully about user flows and application structure. It also highlighted how important filtering, navigation and information hierarchy become when users are working with larger amounts of content.
 
-Helena Cruse  
-Front-End Development, Noroff  
-2025
+Revisiting the project for Portfolio 2 showed me how much stronger an application can become through iteration and refinement rather than adding new features.
+
+Helena Cruse
+
+Portfolio:
+https://portfolio2-helena-cruse.netlify.app
+
+GitHub:
+https://github.com/helena-cruse
+
+LinkedIn:
+https://www.linkedin.com/in/helena-cruse2001/
+
+<img width="1470" height="841" alt="Screenshot 2026-06-06 at 09 31 41" src="https://github.com/user-attachments/assets/6f2da113-3331-49a4-8db7-8954be5a324b" />
+<img width="1470" height="841" alt="Screenshot 2026-06-06 at 09 32 16" src="https://github.com/user-attachments/assets/0a2d183f-89af-4973-ba2b-dc792780f647" />
+
